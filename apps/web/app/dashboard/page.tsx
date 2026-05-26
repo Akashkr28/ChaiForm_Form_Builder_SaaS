@@ -312,7 +312,7 @@ export default function DashboardPage() {
                         <button onClick={() => setDraftFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 p-1"><Trash2 className="h-3 w-3" /></button>
                       </div>
                       {["single_select", "multi_select"].includes(field.type) ? (
-                        <input value={field.options.join(", ")} onChange={(event) => updateDraftField(index, { options: event.target.value.split(",").map((option) => option.trim()).filter(Boolean) })} className="mt-2 w-full rounded-md border border-black/10 px-2 py-1 text-xs" placeholder="Option A, Option B" />
+                        <OptionsEditor options={field.options} onChange={(options) => updateDraftField(index, { options })} compact />
                       ) : null}
                     </div>
                   ))}
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                               <button onClick={() => setEditFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 p-2"><Trash2 className="h-3 w-3" /></button>
                             </div>
                             {["single_select", "multi_select"].includes(field.type) ? (
-                              <input value={field.options.join(", ")} onChange={(event) => updateEditField(index, { options: event.target.value.split(",").map((option) => option.trim()).filter(Boolean) })} className="mt-2 w-full rounded-md border border-black/10 px-2 py-2 text-sm" placeholder="Option A, Option B" />
+                              <OptionsEditor options={field.options} onChange={(options) => updateEditField(index, { options })} />
                             ) : null}
                           </div>
                         ))}
@@ -471,6 +471,55 @@ function Metric({ label, value }: { label: string; value: string | number }) {
     <div className="rounded-md border border-black/10 p-4">
       <p className="text-sm text-black/50">{label}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function OptionsEditor({ options, onChange, compact = false }: { options: string[]; onChange: (options: string[]) => void; compact?: boolean }) {
+  const [draft, setDraft] = useState("");
+
+  function addOption() {
+    const option = draft.trim();
+    if (!option) return;
+    if (options.some((current) => current.toLowerCase() === option.toLowerCase())) {
+      setDraft("");
+      return;
+    }
+    onChange([...options, option]);
+    setDraft("");
+  }
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex gap-2">
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addOption();
+            }
+          }}
+          className={`min-w-0 flex-1 rounded-md border border-black/10 px-2 ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}
+          placeholder="Add option"
+        />
+        <button type="button" onClick={addOption} className={`shrink-0 rounded-md border border-black/10 px-2 ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}>
+          Add
+        </button>
+      </div>
+      {options.length ? (
+        <div className="flex flex-wrap gap-2">
+          {options.map((option) => (
+            <span key={option} className={`inline-flex items-center gap-1 rounded-full bg-[#f7f8f3] px-2 py-1 ${compact ? "text-[11px]" : "text-xs"}`}>
+              {option}
+              <button type="button" onClick={() => onChange(options.filter((current) => current !== option))} className="text-black/45 hover:text-red-700">x</button>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className={`${compact ? "text-[11px]" : "text-xs"} text-black/45`}>Add at least one option.</p>
+      )}
     </div>
   );
 }
