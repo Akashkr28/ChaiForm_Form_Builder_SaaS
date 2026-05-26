@@ -21,15 +21,15 @@ services:
       - key: AUTH_SECRET
         generateValue: true
       - key: BASE_URL
-        value: https://chaiforms-api.onrender.com
+        value: https://chaiforms-api-9s4m.onrender.com
       - key: WEB_URL
-        value: https://chaiforms-web.onrender.com
+        value: https://chaiforms-web-hjco.onrender.com
       - key: GOOGLE_OAUTH_CLIENT_ID
         sync: false
       - key: GOOGLE_OAUTH_CLIENT_SECRET
         sync: false
       - key: GOOGLE_OAUTH_REDIRECT_URI
-        value: https://chaiforms-api.onrender.com/auth/google/callback
+        value: https://chaiforms-api-9s4m.onrender.com/auth/google/callback
 
   - type: web
     name: chaiforms-web
@@ -39,4 +39,4 @@ services:
     startCommand: corepack pnpm@9.0.0 --filter web start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://chaiforms-api.onrender.com/trpc
+        value: https://chaiforms-api-9s4m.onrender.com/trpc
