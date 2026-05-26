@@ -128,6 +128,13 @@ export async function updateFormStatus(idOrSlug: string, status: FormRecord["sta
   return row ? toFormRecord(row) : null;
 }
 
+export async function deleteForm(idOrSlug: string, ownerId: string) {
+  const form = await getForm(idOrSlug);
+  if (!form || form.ownerId !== ownerId) return { ok: false };
+  await db.delete(formsTable).where(eq(formsTable.id, form.id));
+  return { ok: true };
+}
+
 export async function cloneForm(idOrSlug: string) {
   const source = await getForm(idOrSlug);
   if (!source) return null;

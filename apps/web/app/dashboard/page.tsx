@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import QRCode from "qrcode";
-import { BarChart3, Copy, Download, Eye, FilePlus2, LogOut, Mail, MessageCircle, Plus, Send, Settings, Share2, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { BarChart3, Copy, Download, Eye, FilePlus2, LogOut, Mail, MessageCircle, Pencil, Plus, Save, Send, Settings, Share2, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
 import { sampleForms, sampleResponses, summarizeForm, type FieldType, type FormField, type FormRecord } from "@repo/forms";
 import { trpc } from "~/trpc/client";
 import { env } from "~/env";
@@ -31,11 +31,18 @@ export default function DashboardPage() {
   const [origin, setOrigin] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [shareStatus, setShareStatus] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editVisibility, setEditVisibility] = useState<"public" | "unlisted">("unlisted");
+  const [editFields, setEditFields] = useState<FormField[]>([]);
   const listMine = trpc.forms.listMine.useQuery(undefined, { enabled: Boolean(token) });
   const me = trpc.auth.me.useQuery(undefined, { enabled: Boolean(token) });
   const createForm = trpc.forms.create.useMutation();
+  const updateForm = trpc.forms.update.useMutation();
   const setStatus = trpc.forms.setStatus.useMutation();
   const cloneForm = trpc.forms.clone.useMutation();
+  const deleteForm = trpc.forms.delete.useMutation();
 
   useEffect(() => {
     setToken(window.localStorage.getItem("chaiforms_session_token"));
@@ -60,6 +67,15 @@ export default function DashboardPage() {
   const responses = responsesQuery.data?.items?.length ? responsesQuery.data.items : active ? sampleResponses.filter((response) => response.formId === active.id) : [];
   const formUrl = active ? `${origin || "http://localhost:3000"}/forms/${active.slug}` : "";
   const apiBaseUrl = (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/trpc").replace(/\/trpc$/, "");
+
+  useEffect(() => {
+    if (!active) return;
+    setIsEditing(false);
+    setEditTitle(active.title);
+    setEditDescription(active.description);
+    setEditVisibility(active.visibility);
+    setEditFields(active.fields);
+  }, [active?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -134,9 +150,53 @@ export default function DashboardPage() {
     setDraftFields((fields) => fields.map((field, currentIndex) => (currentIndex === index ? { ...field, ...patch } : field)));
   }
 
+  function addEditField() {
+    setEditFields((fields) => [
+      ...fields,
+      {
+        id: `field_${fields.length + 1}`,
+        type: "short_text",
+        label: `Question ${fields.length + 1}`,
+        required: false,
+        options: [],
+        validation: {},
+      },
+    ]);
+  }
+
+  function updateEditField(index: number, patch: Partial<FormField>) {
+    setEditFields((fields) => fields.map((field, currentIndex) => (currentIndex === index ? { ...field, ...patch } : field)));
+  }
+
+  async function saveActiveForm(form: FormRecord) {
+    const updated = await updateForm.mutateAsync({
+      id: form.id,
+      title: editTitle,
+      description: editDescription,
+      slug: form.slug,
+      visibility: editVisibility,
+      status: form.status,
+      fields: editFields.length ? editFields : form.fields,
+      theme: form.theme,
+      responseLimit: form.responseLimit,
+      expiresAt: form.expiresAt,
+    });
+    setSelected(updated.id);
+    setIsEditing(false);
+    await listMine.refetch();
+  }
+
   async function togglePublish(form: FormRecord) {
     await setStatus.mutateAsync({ id: form.id, status: form.status === "published" ? "draft" : "published" });
     await listMine.refetch();
+  }
+
+  async function removeActiveForm(form: FormRecord) {
+    const confirmed = window.confirm(`Delete "${form.title}" and its responses? This cannot be undone.`);
+    if (!confirmed) return;
+    await deleteForm.mutateAsync({ id: form.id });
+    const result = await listMine.refetch();
+    setSelected(result.data?.[0]?.id ?? "");
   }
 
   async function qrFile() {
@@ -271,11 +331,59 @@ export default function DashboardPage() {
                       <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">{active.description}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      <button onClick={() => setIsEditing((current) => !current)} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm">{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}{isEditing ? "Cancel" : "Edit"}</button>
                       <button onClick={() => togglePublish(active)} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm">{active.status === "published" ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}{active.status === "published" ? "Unpublish" : "Publish"}</button>
                       <button onClick={async () => { await cloneForm.mutateAsync({ id: active.id }); await listMine.refetch(); }} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><Copy className="h-4 w-4" /> Clone</button>
+                      <button onClick={() => removeActiveForm(active)} className="inline-flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700"><Trash2 className="h-4 w-4" /> Delete</button>
                       <Link href={`/forms/${active.slug}?preview=1`} className="inline-flex items-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white"><Eye className="h-4 w-4" /> Preview</Link>
                     </div>
                   </div>
+                  {isEditing ? (
+                    <div className="mt-5 rounded-md border border-black/10 bg-[#f7f8f3] p-4">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="block">
+                          <span className="text-sm font-medium">Form title</span>
+                          <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} className="mt-2 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm" />
+                        </label>
+                        <label className="block">
+                          <span className="text-sm font-medium">Visibility</span>
+                          <select value={editVisibility} onChange={(event) => setEditVisibility(event.target.value as "public" | "unlisted")} className="mt-2 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm">
+                            <option value="public">Public</option>
+                            <option value="unlisted">Unlisted</option>
+                          </select>
+                        </label>
+                        <label className="block md:col-span-2">
+                          <span className="text-sm font-medium">Description</span>
+                          <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} className="mt-2 min-h-20 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm" />
+                        </label>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between">
+                        <p className="text-sm font-medium">Fields</p>
+                        <button onClick={addEditField} className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2 py-1 text-xs"><Plus className="h-3 w-3" /> Add field</button>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        {editFields.map((field, index) => (
+                          <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 bg-white p-3">
+                            <input value={field.label} onChange={(event) => updateEditField(index, { label: event.target.value, id: event.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/(^_|_$)/g, "") || field.id })} className="w-full rounded-md border border-black/10 px-2 py-2 text-sm" />
+                            <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
+                              <select value={field.type} onChange={(event) => updateEditField(index, { type: event.target.value as FieldType })} className="rounded-md border border-black/10 px-2 py-2 text-sm">
+                                {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
+                              </select>
+                              <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateEditField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
+                              <button onClick={() => setEditFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 p-2"><Trash2 className="h-3 w-3" /></button>
+                            </div>
+                            {["single_select", "multi_select"].includes(field.type) ? (
+                              <input value={field.options.join(", ")} onChange={(event) => updateEditField(index, { options: event.target.value.split(",").map((option) => option.trim()).filter(Boolean) })} className="mt-2 w-full rounded-md border border-black/10 px-2 py-2 text-sm" placeholder="Option A, Option B" />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button onClick={() => saveActiveForm(active)} disabled={updateForm.isPending || editFields.length === 0} className="inline-flex items-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white disabled:opacity-50"><Save className="h-4 w-4" /> {updateForm.isPending ? "Saving..." : "Save changes"}</button>
+                        <button onClick={() => setIsEditing(false)} className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm"><X className="h-4 w-4" /> Cancel</button>
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="mt-5 grid gap-3 md:grid-cols-4">
                     <Metric label="Views" value={analytics?.views ?? 0} />
                     <Metric label="Responses" value={analytics?.responses ?? 0} />

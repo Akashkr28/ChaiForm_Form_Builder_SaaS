@@ -10,6 +10,7 @@ import { protectedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import {
   cloneForm,
+  deleteForm,
   getAnalytics,
   getForm,
   getFormBySlug,
@@ -129,6 +130,12 @@ export const formsRouter = router({
     .input(z.object({ id: z.string() }))
     .output(formSchema.nullable())
     .mutation(({ input }) => cloneForm(input.id)),
+
+  delete: protectedProcedure
+    .meta({ openapi: { method: "DELETE", path: getPath("/creator/{id}"), tags: ["Creator"] } })
+    .input(z.object({ id: z.string() }))
+    .output(z.object({ ok: z.boolean() }))
+    .mutation(({ input, ctx }) => deleteForm(input.id, ctx.user.id)),
 
   responses: protectedProcedure
     .meta({ openapi: { method: "GET", path: getPath("/creator/{id}/responses"), tags: ["Creator"] } })
