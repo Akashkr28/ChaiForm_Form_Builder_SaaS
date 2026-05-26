@@ -1,5 +1,6 @@
 databases:
   - name: chaiforms-postgres
+    plan: free
     databaseName: chaiforms
     user: chaiforms
 
