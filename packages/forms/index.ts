@@ -124,6 +124,9 @@ export function buildResponseValidator(fields: FormField[]) {
         if (typeof field.validation.minSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).min(field.validation.minSelected);
         if (typeof field.validation.maxSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).max(field.validation.maxSelected);
         break;
+      case "single_select":
+        validator = field.required ? z.string().min(1, "Please select an option.") : z.string();
+        break;
       case "checkbox":
         validator = z.boolean();
         break;

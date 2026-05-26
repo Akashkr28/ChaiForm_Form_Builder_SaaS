@@ -17,6 +17,14 @@ const templateFields = [
 
 const fieldTypes: FieldType[] = ["short_text", "long_text", "email", "number", "single_select", "multi_select", "checkbox", "rating", "date"];
 
+function patchForFieldType(type: FieldType, currentOptions: string[] = []) {
+  return {
+    type,
+    options: ["single_select", "multi_select"].includes(type) ? currentOptions : [],
+    validation: {},
+  };
+}
+
 export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [selected, setSelected] = useState(sampleForms[0]?.id ?? "");
@@ -305,7 +313,7 @@ export default function DashboardPage() {
                     <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 p-2">
                       <input value={field.label} onChange={(event) => updateDraftField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 px-2 py-1 text-xs" />
                       <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-                        <select value={field.type} onChange={(event) => updateDraftField(index, { type: event.target.value as FieldType })} className="rounded-md border border-black/10 px-2 py-1 text-xs">
+                        <select value={field.type} onChange={(event) => updateDraftField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 px-2 py-1 text-xs">
                           {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
                         </select>
                         <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateDraftField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
@@ -366,7 +374,7 @@ export default function DashboardPage() {
                           <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 bg-white p-3">
                             <input value={field.label} onChange={(event) => updateEditField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 px-2 py-2 text-sm" />
                             <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-                              <select value={field.type} onChange={(event) => updateEditField(index, { type: event.target.value as FieldType })} className="rounded-md border border-black/10 px-2 py-2 text-sm">
+                              <select value={field.type} onChange={(event) => updateEditField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 px-2 py-2 text-sm">
                                 {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
                               </select>
                               <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateEditField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
