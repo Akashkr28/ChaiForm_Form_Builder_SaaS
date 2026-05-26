@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { BarChart3, Copy, Download, Eye, FilePlus2, LogOut, Mail, MessageCircle, Plus, Send, Settings, Share2, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { sampleForms, sampleResponses, summarizeForm, type FieldType, type FormField, type FormRecord } from "@repo/forms";
 import { trpc } from "~/trpc/client";
+import { env } from "~/env";
 
 const templateFields = [
   { id: "name", type: "short_text" as const, label: "Name", required: true, options: [], validation: { minLength: 2 } },
@@ -58,6 +59,7 @@ export default function DashboardPage() {
   const analytics = analyticsQuery.data ?? (active ? summarizeForm(active, sampleResponses) : null);
   const responses = responsesQuery.data?.items?.length ? responsesQuery.data.items : active ? sampleResponses.filter((response) => response.formId === active.id) : [];
   const formUrl = active ? `${origin || "http://localhost:3000"}/forms/${active.slug}` : "";
+  const apiBaseUrl = (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/trpc").replace(/\/trpc$/, "");
 
   useEffect(() => {
     let cancelled = false;
@@ -192,7 +194,7 @@ export default function DashboardPage() {
           <Link href="/" className="text-xl font-semibold">ChaiForms</Link>
           <div className="flex items-center gap-2 text-sm">
             <Link href="/explore" className="rounded-md border border-black/10 bg-white px-3 py-2">Explore</Link>
-            <a href="http://localhost:8000/docs" className="rounded-md border border-black/10 bg-white px-3 py-2">Scalar API docs</a>
+            <a href={`${apiBaseUrl}/docs`} className="rounded-md border border-black/10 bg-white px-3 py-2">Scalar API docs</a>
             {token ? (
               <>
                 <span className="rounded-md bg-white px-3 py-2">{userName || userEmail || "Signed in"}</span>

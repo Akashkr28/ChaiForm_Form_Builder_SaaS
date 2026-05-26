@@ -18,15 +18,13 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
-if (env.NODE_ENV !== "prod") {
-  app.use(
-    cors({
-      origin: env.WEB_URL,
-      credentials: true,
-      allowedHeaders: ["content-type", "authorization", "x-demo-user"],
-    }),
-  );
-}
+app.use(
+  cors({
+    origin: env.WEB_URL,
+    credentials: true,
+    allowedHeaders: ["content-type", "authorization", "x-demo-user"],
+  }),
+);
 
 app.use(express.json());
 
