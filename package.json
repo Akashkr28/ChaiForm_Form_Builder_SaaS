@@ -4,8 +4,14 @@
   "scripts": {
     "build": "dotenv -- turbo build",
     "dev": "dotenv -- turbo dev",
-    "db:generate": "dotenv -- turbo db:generate",
-    "db:migrate": "dotenv -- turbo db:migrate",
+    "dev:api": "dotenv -- corepack pnpm@9.0.0 --filter @repo/api dev",
+    "dev:web": "dotenv -- corepack pnpm@9.0.0 --filter web dev",
+    "db:generate": "dotenv -- corepack pnpm@9.0.0 --filter @repo/database db:generate",
+    "db:migrate": "dotenv -- corepack pnpm@9.0.0 --filter @repo/database db:migrate",
+    "db:seed": "dotenv -- corepack pnpm@9.0.0 --filter @repo/database db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"

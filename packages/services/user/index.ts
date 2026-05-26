@@ -1,5 +1,3 @@
-import { db } from "@repo/database";
-import { usersTable } from "@repo/database/schema";
 import { env } from "../env";
 import { googleOAuth2Client } from "../clients/google-oauth";
 import { GetAuthenticationMethodOutputSchema } from "./model";

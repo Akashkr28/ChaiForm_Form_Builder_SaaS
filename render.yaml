@@ -1,0 +1,39 @@
+databases:
+  - name: chaiforms-postgres
+    databaseName: chaiforms
+    user: chaiforms
+
+services:
+  - type: web
+    name: chaiforms-api
+    runtime: node
+    plan: free
+    buildCommand: corepack pnpm@9.0.0 install --frozen-lockfile && corepack pnpm@9.0.0 --filter @repo/api build
+    startCommand: corepack pnpm@9.0.0 --filter @repo/api start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chaiforms-postgres
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_OAUTH_REDIRECT_URI
+        sync: false
+
+  - type: web
+    name: chaiforms-web
+    runtime: node
+    plan: free
+    buildCommand: corepack pnpm@9.0.0 install --frozen-lockfile && corepack pnpm@9.0.0 --filter web build
+    startCommand: corepack pnpm@9.0.0 --filter web start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
