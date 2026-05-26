@@ -85,7 +85,7 @@ export default function AuthPage() {
             {verificationUrl ? (
               <div className="mt-4 rounded-md bg-[#ecfdf5] px-3 py-3 text-sm text-[#065f46]">
                 <p className="font-medium">Verification email sent.</p>
-                <p className="mt-1">For local development, open this verification link:</p>
+                <p className="mt-1">Open this verification link to continue:</p>
                 <Link href={verificationUrl} className="mt-2 block break-all underline">{verificationUrl}</Link>
               </div>
             ) : null}

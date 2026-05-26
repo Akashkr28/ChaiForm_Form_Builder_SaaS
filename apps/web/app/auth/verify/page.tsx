@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "~/trpc/client";
@@ -18,6 +18,7 @@ function VerifyEmailContent() {
   const params = useSearchParams();
   const verifyEmail = trpc.auth.verifyEmail.useMutation();
   const [status, setStatus] = useState("Verifying your email...");
+  const submittedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     const token = params.get("token");
@@ -25,6 +26,8 @@ function VerifyEmailContent() {
       setStatus("Verification token is missing.");
       return;
     }
+    if (submittedTokenRef.current === token) return;
+    submittedTokenRef.current = token;
 
     verifyEmail
       .mutateAsync({ token })
@@ -34,7 +37,10 @@ function VerifyEmailContent() {
         window.localStorage.setItem("chaiforms_user_name", session.user.fullName);
         router.replace(session.user.onboardingCompleted ? "/dashboard" : "/onboarding");
       })
-      .catch((error) => setStatus(error instanceof Error ? error.message : "Could not verify email."));
+      .catch((error) => {
+        submittedTokenRef.current = null;
+        setStatus(error instanceof Error ? error.message : "Could not verify email.");
+      });
   }, [params, router, verifyEmail]);
 
   return <VerifyShell status={status} />;
