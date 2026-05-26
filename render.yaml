@@ -9,8 +9,8 @@ services:
     name: chaiforms-api
     runtime: node
     plan: free
-    buildCommand: corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm install --frozen-lockfile && pnpm db:migrate && pnpm --filter @repo/api build
-    startCommand: corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm --filter @repo/api start
+    buildCommand: corepack pnpm@9.0.0 install --frozen-lockfile && corepack pnpm@9.0.0 db:migrate && corepack pnpm@9.0.0 --filter @repo/api build
+    startCommand: corepack pnpm@9.0.0 --filter @repo/api start
     envVars:
       - key: NODE_ENV
         value: prod
@@ -35,8 +35,8 @@ services:
     name: chaiforms-web
     runtime: node
     plan: free
-    buildCommand: corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm install --frozen-lockfile && pnpm --filter web build
-    startCommand: corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm --filter web start
+    buildCommand: corepack pnpm@9.0.0 install --frozen-lockfile && corepack pnpm@9.0.0 --filter web build
+    startCommand: corepack pnpm@9.0.0 --filter web start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://chaiforms-api.onrender.com/trpc
