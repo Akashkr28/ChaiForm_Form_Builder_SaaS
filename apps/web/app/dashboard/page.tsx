@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import QRCode from "qrcode";
-import { BarChart3, Copy, Download, Eye, FilePlus2, LogOut, Mail, MessageCircle, Pencil, Plus, Save, Send, Settings, Share2, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { BarChart3, Copy, Download, Eye, FilePlus2, Globe2, LockKeyhole, LogOut, Mail, MessageCircle, Pencil, Plus, Radio, Save, Send, Settings, Share2, ShieldCheck, Sparkles, Trash2, TrendingUp, Users, X } from "lucide-react";
 import { sampleForms, sampleResponses, summarizeForm, type FieldType, type FormField, type FormRecord } from "@repo/forms";
 import { trpc } from "~/trpc/client";
 import { env } from "~/env";
@@ -17,12 +17,24 @@ const templateFields = [
 
 const fieldTypes: FieldType[] = ["short_text", "long_text", "email", "number", "single_select", "multi_select", "checkbox", "rating", "date"];
 
+const buttonBase = "inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition hover:-translate-y-px hover:shadow-sm disabled:pointer-events-none disabled:opacity-50";
+
 function patchForFieldType(type: FieldType, currentOptions: string[] = []) {
   return {
     type,
     options: ["single_select", "multi_select"].includes(type) ? currentOptions : [],
     validation: {},
   };
+}
+
+function statusTone(status: FormRecord["status"]) {
+  if (status === "published") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "archived") return "border-zinc-200 bg-zinc-100 text-zinc-600";
+  return "border-amber-200 bg-amber-50 text-amber-700";
+}
+
+function visibilityTone(visibility: FormRecord["visibility"]) {
+  return visibility === "public" ? "border-sky-200 bg-sky-50 text-sky-700" : "border-violet-200 bg-violet-50 text-violet-700";
 }
 
 export default function DashboardPage() {
@@ -75,6 +87,8 @@ export default function DashboardPage() {
   const responses = responsesQuery.data?.items?.length ? responsesQuery.data.items : active ? sampleResponses.filter((response) => response.formId === active.id) : [];
   const formUrl = active ? `${origin || "http://localhost:3000"}/forms/${active.slug}` : "";
   const apiBaseUrl = (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/trpc").replace(/\/trpc$/, "");
+  const publishedForms = forms.filter((form) => form.status === "published").length;
+  const publicForms = forms.filter((form) => form.visibility === "public").length;
 
   useEffect(() => {
     if (!active) return;
@@ -256,68 +270,96 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f8f3] text-[#171813]">
-      <div className="mx-auto max-w-7xl px-6 py-6">
-        <nav className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/" className="text-xl font-semibold">ChaiForms</Link>
+    <main className="min-h-screen bg-[#f4f6f1] text-[#171813]">
+      <div className="border-b border-black/10 bg-[#f7f8f3]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-[1460px] flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
+            <span className="grid h-8 w-8 place-items-center rounded-md bg-[#171813] text-sm text-white">C</span>
+            ChaiForms
+          </Link>
           <div className="flex items-center gap-2 text-sm">
-            <Link href="/explore" className="rounded-md border border-black/10 bg-white px-3 py-2">Explore</Link>
-            <a href={`${apiBaseUrl}/docs`} className="rounded-md border border-black/10 bg-white px-3 py-2">Scalar API docs</a>
+            <Link href="/explore" className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Globe2 className="h-4 w-4" /> Explore</Link>
+            <a href={`${apiBaseUrl}/docs`} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Sparkles className="h-4 w-4" /> API docs</a>
             {token ? (
               <>
-                <span className="rounded-md bg-white px-3 py-2">{userName || userEmail || "Signed in"}</span>
-                <Link href="/settings" aria-label="Settings" className="inline-flex items-center justify-center rounded-md border border-black/10 bg-white p-2"><Settings className="h-4 w-4" /></Link>
-                <button onClick={logout} className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2"><LogOut className="h-4 w-4" /> Logout</button>
+                <span className="hidden rounded-md border border-black/10 bg-white px-3 py-2 text-black/70 md:inline-flex">{userName || userEmail || "Signed in"}</span>
+                <Link href="/settings" aria-label="Settings" className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-white transition hover:-translate-y-px hover:shadow-sm"><Settings className="h-4 w-4" /></Link>
+                <button onClick={logout} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><LogOut className="h-4 w-4" /> Logout</button>
               </>
             ) : (
-              <Link href="/auth" className="rounded-md bg-[#171813] px-4 py-2 text-white">Sign in</Link>
+              <Link href="/auth" className={`${buttonBase} bg-[#171813] text-white`}>Sign in</Link>
             )}
           </div>
-        </nav>
+        </div>
+      </div>
+      <div className="mx-auto max-w-[1460px] px-6 py-6">
+        {token ? (
+          <header className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" /> Protected creator workspace</p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight">Forms, responses and sharing in one place.</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Create publishable forms, review responses, export data and share production-ready QR links.</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 rounded-lg border border-black/10 bg-white p-2 shadow-sm">
+              <MiniStat label="Forms" value={forms.length} />
+              <MiniStat label="Published" value={publishedForms} />
+              <MiniStat label="Public" value={publicForms} />
+            </div>
+          </header>
+        ) : null}
 
         {!token ? (
-          <section className="mt-8 rounded-lg bg-white p-6 shadow-sm">
+          <section className="mt-8 rounded-lg border border-black/10 bg-white p-6 shadow-sm">
             <h1 className="text-3xl font-semibold">Sign in to your creator workspace</h1>
             <p className="mt-2 text-black/60">Create an account to build forms, publish links, and collect responses in your own workspace.</p>
-            <Link href="/auth" className="mt-5 inline-flex rounded-md bg-[#171813] px-4 py-3 text-sm font-medium text-white">Continue to sign in</Link>
+            <Link href="/auth" className={`${buttonBase} mt-5 bg-[#171813] text-white`}>Continue to sign in</Link>
           </section>
         ) : (
-          <section className="mt-8 grid gap-5 lg:grid-cols-[300px_1fr]">
-            <aside className="space-y-3">
-              <div className="rounded-lg bg-white p-4 shadow-sm">
-                <h2 className="font-semibold">Forms</h2>
+          <section className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <aside className="space-y-4 lg:sticky lg:top-5 lg:self-start">
+              <div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold">Forms</h2>
+                  <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50">{forms.length}</span>
+                </div>
                 <div className="mt-4 space-y-2">
                   {forms.map((form) => (
-                    <button key={form.id} onClick={() => setSelected(form.id)} className={`w-full rounded-md border px-3 py-3 text-left text-sm ${selected === form.id ? "border-black bg-[#171813] text-white" : "border-black/10 bg-white"}`}>
-                      <span className="block font-medium">{form.title}</span>
-                      <span className="mt-1 block text-xs opacity-70">{form.status} · {form.visibility}</span>
+                    <button key={form.id} onClick={() => setSelected(form.id)} className={`w-full rounded-md border px-3 py-3 text-left text-sm transition hover:-translate-y-px hover:shadow-sm ${selected === form.id ? "border-[#171813] bg-[#171813] text-white" : "border-black/10 bg-white"}`}>
+                      <span className="block truncate font-medium">{form.title}</span>
+                      <span className="mt-2 flex flex-wrap gap-1.5">
+                        <span className={`rounded-full border px-2 py-0.5 text-[11px] ${selected === form.id ? "border-white/20 bg-white/10 text-white" : statusTone(form.status)}`}>{form.status}</span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[11px] ${selected === form.id ? "border-white/20 bg-white/10 text-white" : visibilityTone(form.visibility)}`}>{form.visibility}</span>
+                      </span>
                     </button>
                   ))}
                   {forms.length === 0 ? <p className="rounded-md border border-dashed border-black/15 p-3 text-sm text-black/60">No forms yet. Create your first form below.</p> : null}
                 </div>
               </div>
-              <div className="rounded-lg bg-white p-4 shadow-sm">
-                <h2 className="font-semibold">Create form</h2>
-                <input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
-                <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-3 min-h-20 w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
-                <select value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "unlisted")} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm">
+              <div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold">Create form</h2>
+                  <FilePlus2 className="h-4 w-4 text-black/35" />
+                </div>
+                <input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" />
+                <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-3 min-h-20 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" />
+                <select value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "unlisted")} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10">
                   <option value="public">Public</option>
                   <option value="unlisted">Unlisted</option>
                 </select>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">Fields</p>
-                    <button onClick={addField} className="inline-flex items-center gap-1 rounded-md border border-black/10 px-2 py-1 text-xs"><Plus className="h-3 w-3" /> Add</button>
+                    <button onClick={addField} className="inline-flex items-center gap-1 rounded-md border border-black/10 px-2 py-1 text-xs transition hover:bg-[#f4f6f1]"><Plus className="h-3 w-3" /> Add</button>
                   </div>
                   {draftFields.map((field, index) => (
-                    <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 p-2">
-                      <input value={field.label} onChange={(event) => updateDraftField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 px-2 py-1 text-xs" />
+                    <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 bg-[#fbfcf8] p-2">
+                      <input value={field.label} onChange={(event) => updateDraftField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-[#0f766e]" />
                       <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-                        <select value={field.type} onChange={(event) => updateDraftField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 px-2 py-1 text-xs">
+                        <select value={field.type} onChange={(event) => updateDraftField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-[#0f766e]">
                           {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
                         </select>
                         <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateDraftField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
-                        <button onClick={() => setDraftFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 p-1"><Trash2 className="h-3 w-3" /></button>
+                        <button onClick={() => setDraftFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 bg-white p-1 transition hover:border-red-200 hover:text-red-700"><Trash2 className="h-3 w-3" /></button>
                       </div>
                       {["single_select", "multi_select"].includes(field.type) ? (
                         <OptionsEditor options={field.options} onChange={(options) => updateDraftField(index, { options })} compact />
@@ -325,29 +367,37 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={createDemoForm} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white"><FilePlus2 className="h-4 w-4" /> Create draft</button>
+                <button onClick={createDemoForm} className={`${buttonBase} mt-3 w-full bg-[#171813] text-white`}><FilePlus2 className="h-4 w-4" /> Create draft</button>
               </div>
             </aside>
 
             {active ? (
               <div className="space-y-5">
-                <section className="rounded-lg bg-white p-5 shadow-sm">
+                <section className="rounded-lg border border-black/10 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-medium text-[#0f766e]">{active.theme.name}</p>
-                      <h1 className="mt-1 text-3xl font-semibold">{active.title}</h1>
-                      <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">{active.description}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium text-[#0f766e]">{active.theme.name}</p>
+                        <span className={`rounded-full border px-2 py-0.5 text-xs ${statusTone(active.status)}`}>{active.status}</span>
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${visibilityTone(active.visibility)}`}>
+                          {active.visibility === "public" ? <Globe2 className="h-3 w-3" /> : <LockKeyhole className="h-3 w-3" />}
+                          {active.visibility}
+                        </span>
+                      </div>
+                      <h1 className="mt-2 text-3xl font-semibold tracking-tight">{active.title}</h1>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-black/60">{active.description}</p>
+                      <p className="mt-3 break-all text-xs text-black/40">/{active.slug}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button onClick={() => setIsEditing((current) => !current)} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm">{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}{isEditing ? "Cancel" : "Edit"}</button>
-                      <button onClick={() => togglePublish(active)} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm">{active.status === "published" ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}{active.status === "published" ? "Unpublish" : "Publish"}</button>
-                      <button onClick={async () => { await cloneForm.mutateAsync({ id: active.id }); await listMine.refetch(); }} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><Copy className="h-4 w-4" /> Clone</button>
-                      <button onClick={() => removeActiveForm(active)} className="inline-flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-700"><Trash2 className="h-4 w-4" /> Delete</button>
-                      <Link href={`/forms/${active.slug}?preview=1`} className="inline-flex items-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white"><Eye className="h-4 w-4" /> Preview</Link>
+                      <button onClick={() => setIsEditing((current) => !current)} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}>{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}{isEditing ? "Cancel" : "Edit"}</button>
+                      <button onClick={() => togglePublish(active)} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Radio className="h-4 w-4" />{active.status === "published" ? "Unpublish" : "Publish"}</button>
+                      <button onClick={async () => { await cloneForm.mutateAsync({ id: active.id }); await listMine.refetch(); }} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Copy className="h-4 w-4" /> Clone</button>
+                      <button onClick={() => removeActiveForm(active)} className={`${buttonBase} border border-red-200 bg-white text-red-700`}><Trash2 className="h-4 w-4" /> Delete</button>
+                      <Link href={`/forms/${active.slug}?preview=1`} className={`${buttonBase} bg-[#171813] text-white`}><Eye className="h-4 w-4" /> Preview</Link>
                     </div>
                   </div>
                   {isEditing ? (
-                    <div className="mt-5 rounded-md border border-black/10 bg-[#f7f8f3] p-4">
+                    <div className="mt-5 border-t border-black/10 pt-5">
                       <div className="grid gap-3 md:grid-cols-2">
                         <label className="block">
                           <span className="text-sm font-medium">Form title</span>
@@ -393,21 +443,24 @@ export default function DashboardPage() {
                     </div>
                   ) : null}
                   <div className="mt-5 grid gap-3 md:grid-cols-4">
-                    <Metric label="Views" value={analytics?.views ?? 0} />
-                    <Metric label="Responses" value={analytics?.responses ?? 0} />
-                    <Metric label="Completion" value={`${analytics?.completionRate ?? 0}%`} />
-                    <Metric label="Fields" value={active.fields.length} />
+                    <Metric label="Views" value={analytics?.views ?? 0} icon={<Eye className="h-4 w-4" />} />
+                    <Metric label="Responses" value={analytics?.responses ?? 0} icon={<Users className="h-4 w-4" />} />
+                    <Metric label="Completion" value={`${analytics?.completionRate ?? 0}%`} icon={<TrendingUp className="h-4 w-4" />} />
+                    <Metric label="Fields" value={active.fields.length} icon={<FilePlus2 className="h-4 w-4" />} />
                   </div>
                   {analytics && "responseTrend" in analytics ? (
-                    <div className="mt-5 rounded-md border border-black/10 p-4">
-                      <p className="text-sm font-medium">7-day response trend</p>
+                    <div className="mt-5 rounded-md border border-black/10 bg-[#fbfcf8] p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">7-day response trend</p>
+                        <span className="text-xs text-black/45">Last updated live</span>
+                      </div>
                       <div className="mt-4 flex h-28 items-end gap-2">
                         {analytics.responseTrend.map((day) => {
                           const max = Math.max(1, ...analytics.responseTrend.map((item) => item.responses));
                           return (
                             <div key={day.date} className="flex flex-1 flex-col items-center gap-2">
                               <div className="flex h-20 w-full items-end">
-                                <span className="w-full rounded-t-sm bg-[#0f766e]" style={{ height: `${Math.max(8, (day.responses / max) * 80)}px` }} />
+                                <span className="w-full rounded-t-sm bg-[#0f766e] shadow-sm" style={{ height: `${Math.max(8, (day.responses / max) * 80)}px` }} />
                               </div>
                               <span className="text-[10px] text-black/45">{day.date.slice(5)}</span>
                             </div>
@@ -418,51 +471,54 @@ export default function DashboardPage() {
                   ) : null}
                 </section>
 
-                <section className="grid gap-5 lg:grid-cols-[1fr_340px]">
-                  <div className="rounded-lg bg-white p-5 shadow-sm">
+                <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+                  <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm">
                     <div className="flex items-center justify-between">
                       <h2 className="flex items-center gap-2 font-semibold"><BarChart3 className="h-4 w-4" /> Response management</h2>
-                      <a download={`${active.slug}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`} className="inline-flex items-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><Download className="h-4 w-4" /> CSV</a>
+                      <a download={`${active.slug}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Download className="h-4 w-4" /> CSV</a>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <input value={responseQuery} onChange={(event) => { setResponsePage(1); setResponseQuery(event.target.value); }} className="min-w-56 rounded-md border border-black/15 px-3 py-2 text-sm" placeholder="Filter by respondent email" />
-                      <span className="text-sm text-black/50">{responsesQuery.data?.total ?? responses.length} total</span>
+                      <input value={responseQuery} onChange={(event) => { setResponsePage(1); setResponseQuery(event.target.value); }} className="min-w-56 rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" placeholder="Filter by respondent email" />
+                      <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50">{responsesQuery.data?.total ?? responses.length} total</span>
                     </div>
                     <div className="mt-4 overflow-x-auto">
                       <table className="w-full min-w-[620px] text-left text-sm">
-                        <thead className="border-b border-black/10 text-black/50"><tr><th className="py-2">Submitted</th>{active.fields.slice(0, 3).map((field) => <th key={field.id} className="py-2">{field.label}</th>)}</tr></thead>
+                        <thead className="border-b border-black/10 text-xs uppercase tracking-wide text-black/45"><tr><th className="py-2">Submitted</th>{active.fields.slice(0, 3).map((field) => <th key={field.id} className="py-2">{field.label}</th>)}</tr></thead>
                         <tbody>
                           {responses.map((response) => (
-                            <tr key={response.id} className="border-b border-black/5"><td className="py-3">{new Date(response.submittedAt).toLocaleDateString()}</td>{active.fields.slice(0, 3).map((field) => <td key={field.id} className="py-3">{String(response.values[field.id] ?? "")}</td>)}</tr>
+                            <tr key={response.id} className="border-b border-black/5 transition hover:bg-[#fbfcf8]"><td className="py-3 text-black/55">{new Date(response.submittedAt).toLocaleDateString()}</td>{active.fields.slice(0, 3).map((field) => <td key={field.id} className="py-3">{String(response.values[field.id] ?? "")}</td>)}</tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                     <div className="mt-4 flex items-center justify-between text-sm">
-                      <button disabled={responsePage <= 1} onClick={() => setResponsePage((page) => Math.max(1, page - 1))} className="rounded-md border border-black/10 px-3 py-2 disabled:opacity-40">Previous</button>
+                      <button disabled={responsePage <= 1} onClick={() => setResponsePage((page) => Math.max(1, page - 1))} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40">Previous</button>
                       <span className="text-black/55">Page {responsesQuery.data?.page ?? responsePage} of {responsesQuery.data?.pageCount ?? 1}</span>
-                      <button disabled={responsePage >= (responsesQuery.data?.pageCount ?? 1)} onClick={() => setResponsePage((page) => page + 1)} className="rounded-md border border-black/10 px-3 py-2 disabled:opacity-40">Next</button>
+                      <button disabled={responsePage >= (responsesQuery.data?.pageCount ?? 1)} onClick={() => setResponsePage((page) => page + 1)} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40">Next</button>
                     </div>
                   </div>
-                  <div className="rounded-lg bg-white p-5 shadow-sm">
-                    <h2 className="font-semibold">Share</h2>
-                    <p className="mt-2 break-all rounded-md bg-[#f7f8f3] p-3 text-sm">{formUrl}</p>
-                    <div className="mt-4 flex aspect-square items-center justify-center rounded-md border border-black/10 bg-[#f7f8f3] p-8">
+                  <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm xl:sticky xl:top-5 xl:self-start">
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-semibold">Share</h2>
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-700">QR ready</span>
+                    </div>
+                    <p className="mt-3 break-all rounded-md bg-[#f4f6f1] p-3 text-sm leading-5">{formUrl}</p>
+                    <div className="mt-4 flex aspect-square items-center justify-center rounded-md border border-black/10 bg-[#fbfcf8] p-7">
                       {qrDataUrl ? <img src={qrDataUrl} alt={`QR code for ${active.title}`} className="h-full w-full object-contain" /> : <span className="text-sm text-black/50">Generating QR...</span>}
                     </div>
                     <p className="mt-3 text-sm text-black/60">A fresh QR code is generated from this form link whenever the selected form changes.</p>
                     <div className="mt-4 grid gap-2">
-                      <button onClick={shareQr} className="inline-flex items-center justify-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white"><Share2 className="h-4 w-4" /> Share QR</button>
-                      <button onClick={shareQrViaMail} className="inline-flex items-center justify-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><Mail className="h-4 w-4" /> Share QR via Mail</button>
-                      <button onClick={shareQrOnWhatsapp} className="inline-flex items-center justify-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><MessageCircle className="h-4 w-4" /> Whatsapp QR</button>
-                      <button className="inline-flex items-center justify-center gap-2 rounded-md border border-black/10 px-3 py-2 text-sm"><Send className="h-4 w-4" /> Test email flow</button>
+                      <button onClick={shareQr} className={`${buttonBase} bg-[#171813] text-white`}><Share2 className="h-4 w-4" /> Share QR</button>
+                      <button onClick={shareQrViaMail} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Mail className="h-4 w-4" /> Share QR via Mail</button>
+                      <button onClick={shareQrOnWhatsapp} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><MessageCircle className="h-4 w-4" /> Whatsapp QR</button>
+                      <button className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Send className="h-4 w-4" /> Test email flow</button>
                     </div>
                     {shareStatus ? <p className="mt-3 rounded-md bg-[#f7f8f3] px-3 py-2 text-sm text-black/60">{shareStatus}</p> : null}
                   </div>
                 </section>
               </div>
             ) : (
-              <div className="rounded-lg bg-white p-6 shadow-sm">
+              <div className="rounded-lg border border-black/10 bg-white p-6 shadow-sm">
                 <h1 className="text-2xl font-semibold">Your workspace is ready.</h1>
                 <p className="mt-2 text-black/60">Create your first form from the sidebar, then publish it to get a shareable link.</p>
               </div>
@@ -474,11 +530,23 @@ export default function DashboardPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string | number }) {
+function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md border border-black/10 p-4">
-      <p className="text-sm text-black/50">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
+    <div className="min-w-24 rounded-md bg-[#f4f6f1] px-3 py-2 text-center">
+      <p className="text-lg font-semibold">{value}</p>
+      <p className="text-[11px] uppercase tracking-wide text-black/45">{label}</p>
+    </div>
+  );
+}
+
+function Metric({ label, value, icon }: { label: string; value: string | number; icon?: ReactNode }) {
+  return (
+    <div className="rounded-md border border-black/10 bg-[#fbfcf8] p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-black/50">{label}</p>
+        {icon ? <span className="grid h-8 w-8 place-items-center rounded-md bg-white text-[#0f766e] shadow-sm">{icon}</span> : null}
+      </div>
+      <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
   );
 }
