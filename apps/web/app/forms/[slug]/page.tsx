@@ -70,7 +70,10 @@ export default function PublicFormPage() {
     setError("");
     const parsed = validator.safeParse(values);
     if (!parsed.success) {
-      setError(parsed.error.issues.at(0)?.message ?? "Please check your answers.");
+      const issue = parsed.error.issues.at(0);
+      const fieldId = String(issue?.path.at(0) ?? "");
+      const field = form.fields.find((currentField) => currentField.id === fieldId);
+      setError(field ? `${field.label}: ${issue?.message ?? "Please check this answer."}` : issue?.message ?? "Please check your answers.");
       return;
     }
 

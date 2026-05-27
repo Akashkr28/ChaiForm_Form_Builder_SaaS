@@ -111,29 +111,29 @@ export function buildResponseValidator(fields: FormField[]) {
     let validator: z.ZodType;
     switch (field.type) {
       case "email":
-        validator = z.string().email();
+        validator = z.string().email(`${field.label} must be a valid email address.`);
         break;
       case "number":
       case "rating":
         validator = z.coerce.number();
-        if (typeof field.validation.min === "number") validator = (validator as z.ZodNumber).min(field.validation.min);
-        if (typeof field.validation.max === "number") validator = (validator as z.ZodNumber).max(field.validation.max);
+        if (typeof field.validation.min === "number") validator = (validator as z.ZodNumber).min(field.validation.min, `${field.label} must be at least ${field.validation.min}.`);
+        if (typeof field.validation.max === "number") validator = (validator as z.ZodNumber).max(field.validation.max, `${field.label} must be at most ${field.validation.max}.`);
         break;
       case "multi_select":
         validator = z.array(z.string());
-        if (typeof field.validation.minSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).min(field.validation.minSelected);
-        if (typeof field.validation.maxSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).max(field.validation.maxSelected);
+        if (typeof field.validation.minSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).min(field.validation.minSelected, `${field.label} needs at least ${field.validation.minSelected} selections.`);
+        if (typeof field.validation.maxSelected === "number") validator = (validator as z.ZodArray<z.ZodString>).max(field.validation.maxSelected, `${field.label} allows at most ${field.validation.maxSelected} selections.`);
         break;
       case "single_select":
-        validator = field.required ? z.string().min(1, "Please select an option.") : z.string();
+        validator = field.required ? z.string().min(1, `Please select an option for ${field.label}.`) : z.string();
         break;
       case "checkbox":
         validator = z.boolean();
         break;
       default:
         validator = z.string();
-        if (typeof field.validation.minLength === "number") validator = (validator as z.ZodString).min(field.validation.minLength);
-        if (typeof field.validation.maxLength === "number") validator = (validator as z.ZodString).max(field.validation.maxLength);
+        if (typeof field.validation.minLength === "number") validator = (validator as z.ZodString).min(field.validation.minLength, `${field.label} must be at least ${field.validation.minLength} characters.`);
+        if (typeof field.validation.maxLength === "number") validator = (validator as z.ZodString).max(field.validation.maxLength, `${field.label} must be at most ${field.validation.maxLength} characters.`);
         break;
     }
 

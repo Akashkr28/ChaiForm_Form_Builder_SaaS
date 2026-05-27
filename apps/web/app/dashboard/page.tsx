@@ -9,9 +9,9 @@ import { trpc } from "~/trpc/client";
 import { env } from "~/env";
 
 const templateFields = [
-  { id: "name", type: "short_text" as const, label: "Name", required: true, options: [], validation: { minLength: 2 } },
+  { id: "name", type: "short_text" as const, label: "Name", required: true, options: [], validation: {} },
   { id: "email", type: "email" as const, label: "Email", required: true, options: [], validation: {} },
-  { id: "feedback", type: "long_text" as const, label: "Feedback", required: true, options: [], validation: { minLength: 10 } },
+  { id: "feedback", type: "long_text" as const, label: "Feedback", required: true, options: [], validation: {} },
   { id: "score", type: "rating" as const, label: "Score", required: true, options: [], validation: { min: 1, max: 5 } },
 ];
 
