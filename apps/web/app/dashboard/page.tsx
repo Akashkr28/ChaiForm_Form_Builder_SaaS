@@ -7,6 +7,7 @@ import { BarChart3, Copy, Download, Eye, FilePlus2, Globe2, LockKeyhole, LogOut,
 import { sampleForms, sampleResponses, summarizeForm, type FieldType, type FormField, type FormRecord } from "@repo/forms";
 import { trpc } from "~/trpc/client";
 import { env } from "~/env";
+import { ThemeToggle } from "~/components/theme-toggle";
 
 const templateFields = [
   { id: "name", type: "short_text" as const, label: "Name", required: true, options: [], validation: {} },
@@ -18,6 +19,11 @@ const templateFields = [
 const fieldTypes: FieldType[] = ["short_text", "long_text", "email", "number", "single_select", "multi_select", "checkbox", "rating", "date"];
 
 const buttonBase = "inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition hover:-translate-y-px hover:shadow-sm disabled:pointer-events-none disabled:opacity-50";
+const secondaryButton = `${buttonBase} border border-black/10 bg-white text-[#171813] dark:border-white/10 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]`;
+const cardClass = "rounded-lg border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-[#181b16]";
+const softPanelClass = "rounded-md border border-black/10 bg-[#fbfcf8] dark:border-white/10 dark:bg-white/[0.04]";
+const inputClass = "rounded-md border border-black/15 bg-white text-[#171813] outline-none transition placeholder:text-black/40 focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10 dark:border-white/10 dark:bg-[#10120e] dark:text-white dark:placeholder:text-white/35";
+const smallInputClass = "rounded-md border border-black/10 bg-white text-[#171813] outline-none transition focus:border-[#0f766e] dark:border-white/10 dark:bg-[#10120e] dark:text-white";
 
 function patchForFieldType(type: FieldType, currentOptions: string[] = []) {
   return {
@@ -28,13 +34,13 @@ function patchForFieldType(type: FieldType, currentOptions: string[] = []) {
 }
 
 function statusTone(status: FormRecord["status"]) {
-  if (status === "published") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "archived") return "border-zinc-200 bg-zinc-100 text-zinc-600";
-  return "border-amber-200 bg-amber-50 text-amber-700";
+  if (status === "published") return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/10 dark:text-emerald-200";
+  if (status === "archived") return "border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/10 dark:text-white/60";
+  return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-100";
 }
 
 function visibilityTone(visibility: FormRecord["visibility"]) {
-  return visibility === "public" ? "border-sky-200 bg-sky-50 text-sky-700" : "border-violet-200 bg-violet-50 text-violet-700";
+  return visibility === "public" ? "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-300/25 dark:bg-sky-300/10 dark:text-sky-100" : "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-300/25 dark:bg-violet-300/10 dark:text-violet-100";
 }
 
 export default function DashboardPage() {
@@ -270,24 +276,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f6f1] text-[#171813]">
-      <div className="border-b border-black/10 bg-[#f7f8f3]/95 backdrop-blur">
+    <main className="min-h-screen bg-[#f4f6f1] text-[#171813] transition-colors dark:bg-[#10120e] dark:text-[#f7f8f3]">
+      <div className="border-b border-black/10 bg-[#f7f8f3]/95 backdrop-blur transition-colors dark:border-white/10 dark:bg-[#141711]/95">
         <div className="mx-auto flex max-w-[1460px] flex-wrap items-center justify-between gap-3 px-6 py-4">
           <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-[#171813] text-sm text-white">C</span>
+            <span className="grid h-8 w-8 place-items-center rounded-md bg-[#171813] text-sm text-white dark:bg-white dark:text-[#171813]">C</span>
             ChaiForms
           </Link>
           <div className="flex items-center gap-2 text-sm">
-            <Link href="/explore" className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Globe2 className="h-4 w-4" /> Explore</Link>
-            <a href={`${apiBaseUrl}/docs`} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Sparkles className="h-4 w-4" /> API docs</a>
+            <Link href="/explore" className={secondaryButton}><Globe2 className="h-4 w-4" /> Explore</Link>
+            <a href={`${apiBaseUrl}/docs`} className={secondaryButton}><Sparkles className="h-4 w-4" /> API docs</a>
+            <ThemeToggle />
             {token ? (
               <>
-                <span className="hidden rounded-md border border-black/10 bg-white px-3 py-2 text-black/70 md:inline-flex">{userName || userEmail || "Signed in"}</span>
-                <Link href="/settings" aria-label="Settings" className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-white transition hover:-translate-y-px hover:shadow-sm"><Settings className="h-4 w-4" /></Link>
-                <button onClick={logout} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><LogOut className="h-4 w-4" /> Logout</button>
+                <span className="hidden rounded-md border border-black/10 bg-white px-3 py-2 text-black/70 dark:border-white/10 dark:bg-white/[0.08] dark:text-white/75 md:inline-flex">{userName || userEmail || "Signed in"}</span>
+                <Link href="/settings" aria-label="Settings" className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-white transition hover:-translate-y-px hover:shadow-sm dark:border-white/10 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"><Settings className="h-4 w-4" /></Link>
+                <button onClick={logout} className={secondaryButton}><LogOut className="h-4 w-4" /> Logout</button>
               </>
             ) : (
-              <Link href="/auth" className={`${buttonBase} bg-[#171813] text-white`}>Sign in</Link>
+              <Link href="/auth" className={`${buttonBase} bg-[#171813] text-white dark:bg-white dark:text-[#171813]`}>Sign in</Link>
             )}
           </div>
         </div>
@@ -298,9 +305,9 @@ export default function DashboardPage() {
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" /> Protected creator workspace</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight">Forms, responses and sharing in one place.</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Create publishable forms, review responses, export data and share production-ready QR links.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60">Create publishable forms, review responses, export data and share production-ready QR links.</p>
             </div>
-            <div className="grid grid-cols-3 gap-2 rounded-lg border border-black/10 bg-white p-2 shadow-sm">
+            <div className={`${cardClass} grid grid-cols-3 gap-2 p-2`}>
               <MiniStat label="Forms" value={forms.length} />
               <MiniStat label="Published" value={publishedForms} />
               <MiniStat label="Public" value={publicForms} />
@@ -309,22 +316,22 @@ export default function DashboardPage() {
         ) : null}
 
         {!token ? (
-          <section className="mt-8 rounded-lg border border-black/10 bg-white p-6 shadow-sm">
+          <section className={`${cardClass} mt-8 p-6`}>
             <h1 className="text-3xl font-semibold">Sign in to your creator workspace</h1>
-            <p className="mt-2 text-black/60">Create an account to build forms, publish links, and collect responses in your own workspace.</p>
-            <Link href="/auth" className={`${buttonBase} mt-5 bg-[#171813] text-white`}>Continue to sign in</Link>
+            <p className="mt-2 text-black/60 dark:text-white/60">Create an account to build forms, publish links, and collect responses in your own workspace.</p>
+            <Link href="/auth" className={`${buttonBase} mt-5 bg-[#171813] text-white dark:bg-white dark:text-[#171813]`}>Continue to sign in</Link>
           </section>
         ) : (
           <section className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
             <aside className="space-y-4 lg:sticky lg:top-5 lg:self-start">
-              <div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
+              <div className={`${cardClass} p-4`}>
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold">Forms</h2>
-                  <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50">{forms.length}</span>
+                  <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50 dark:bg-white/[0.08] dark:text-white/55">{forms.length}</span>
                 </div>
                 <div className="mt-4 space-y-2">
                   {forms.map((form) => (
-                    <button key={form.id} onClick={() => setSelected(form.id)} className={`w-full rounded-md border px-3 py-3 text-left text-sm transition hover:-translate-y-px hover:shadow-sm ${selected === form.id ? "border-[#171813] bg-[#171813] text-white" : "border-black/10 bg-white"}`}>
+                    <button key={form.id} onClick={() => setSelected(form.id)} className={`w-full rounded-md border px-3 py-3 text-left text-sm transition hover:-translate-y-px hover:shadow-sm ${selected === form.id ? "border-[#171813] bg-[#171813] text-white dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-50" : "border-black/10 bg-white dark:border-white/10 dark:bg-white/[0.05] dark:text-white"}`}>
                       <span className="block truncate font-medium">{form.title}</span>
                       <span className="mt-2 flex flex-wrap gap-1.5">
                         <span className={`rounded-full border px-2 py-0.5 text-[11px] ${selected === form.id ? "border-white/20 bg-white/10 text-white" : statusTone(form.status)}`}>{form.status}</span>
@@ -332,34 +339,34 @@ export default function DashboardPage() {
                       </span>
                     </button>
                   ))}
-                  {forms.length === 0 ? <p className="rounded-md border border-dashed border-black/15 p-3 text-sm text-black/60">No forms yet. Create your first form below.</p> : null}
+                  {forms.length === 0 ? <p className="rounded-md border border-dashed border-black/15 p-3 text-sm text-black/60 dark:border-white/15 dark:text-white/60">No forms yet. Create your first form below.</p> : null}
                 </div>
               </div>
-              <div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
+              <div className={`${cardClass} p-4`}>
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold">Create form</h2>
-                  <FilePlus2 className="h-4 w-4 text-black/35" />
+                  <FilePlus2 className="h-4 w-4 text-black/35 dark:text-white/35" />
                 </div>
-                <input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" />
-                <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-3 min-h-20 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" />
-                <select value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "unlisted")} className="mt-3 w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10">
+                <input value={title} onChange={(event) => setTitle(event.target.value)} className={`${inputClass} mt-3 w-full px-3 py-2 text-sm`} />
+                <textarea value={description} onChange={(event) => setDescription(event.target.value)} className={`${inputClass} mt-3 min-h-20 w-full px-3 py-2 text-sm`} />
+                <select value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "unlisted")} className={`${inputClass} mt-3 w-full px-3 py-2 text-sm`}>
                   <option value="public">Public</option>
                   <option value="unlisted">Unlisted</option>
                 </select>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">Fields</p>
-                    <button onClick={addField} className="inline-flex items-center gap-1 rounded-md border border-black/10 px-2 py-1 text-xs transition hover:bg-[#f4f6f1]"><Plus className="h-3 w-3" /> Add</button>
+                    <button onClick={addField} className="inline-flex items-center gap-1 rounded-md border border-black/10 px-2 py-1 text-xs transition hover:bg-[#f4f6f1] dark:border-white/10 dark:hover:bg-white/[0.08]"><Plus className="h-3 w-3" /> Add</button>
                   </div>
                   {draftFields.map((field, index) => (
-                    <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 bg-[#fbfcf8] p-2">
-                      <input value={field.label} onChange={(event) => updateDraftField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-[#0f766e]" />
+                    <div key={`${field.id}-${index}`} className={`${softPanelClass} p-2`}>
+                      <input value={field.label} onChange={(event) => updateDraftField(index, { label: event.target.value })} className={`${smallInputClass} w-full px-2 py-1 text-xs`} />
                       <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-                        <select value={field.type} onChange={(event) => updateDraftField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-[#0f766e]">
+                        <select value={field.type} onChange={(event) => updateDraftField(index, patchForFieldType(event.target.value as FieldType, field.options))} className={`${smallInputClass} px-2 py-1 text-xs`}>
                           {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
                         </select>
                         <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateDraftField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
-                        <button onClick={() => setDraftFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 bg-white p-1 transition hover:border-red-200 hover:text-red-700"><Trash2 className="h-3 w-3" /></button>
+                        <button onClick={() => setDraftFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 bg-white p-1 transition hover:border-red-200 hover:text-red-700 dark:border-white/10 dark:bg-white/[0.08] dark:hover:border-red-300/30 dark:hover:text-red-200"><Trash2 className="h-3 w-3" /></button>
                       </div>
                       {["single_select", "multi_select"].includes(field.type) ? (
                         <OptionsEditor options={field.options} onChange={(options) => updateDraftField(index, { options })} compact />
@@ -367,13 +374,13 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={createDemoForm} className={`${buttonBase} mt-3 w-full bg-[#171813] text-white`}><FilePlus2 className="h-4 w-4" /> Create draft</button>
+                <button onClick={createDemoForm} className={`${buttonBase} mt-3 w-full bg-[#171813] text-white dark:bg-white dark:text-[#171813]`}><FilePlus2 className="h-4 w-4" /> Create draft</button>
               </div>
             </aside>
 
             {active ? (
               <div className="space-y-5">
-                <section className="rounded-lg border border-black/10 bg-white p-5 shadow-sm">
+                <section className={`${cardClass} p-5`}>
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -385,50 +392,50 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <h1 className="mt-2 text-3xl font-semibold tracking-tight">{active.title}</h1>
-                      <p className="mt-2 max-w-3xl text-sm leading-6 text-black/60">{active.description}</p>
-                      <p className="mt-3 break-all text-xs text-black/40">/{active.slug}</p>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-black/60 dark:text-white/60">{active.description}</p>
+                      <p className="mt-3 break-all text-xs text-black/40 dark:text-white/40">/{active.slug}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button onClick={() => setIsEditing((current) => !current)} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}>{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}{isEditing ? "Cancel" : "Edit"}</button>
-                      <button onClick={() => togglePublish(active)} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Radio className="h-4 w-4" />{active.status === "published" ? "Unpublish" : "Publish"}</button>
-                      <button onClick={async () => { await cloneForm.mutateAsync({ id: active.id }); await listMine.refetch(); }} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Copy className="h-4 w-4" /> Clone</button>
-                      <button onClick={() => removeActiveForm(active)} className={`${buttonBase} border border-red-200 bg-white text-red-700`}><Trash2 className="h-4 w-4" /> Delete</button>
-                      <Link href={`/forms/${active.slug}?preview=1`} className={`${buttonBase} bg-[#171813] text-white`}><Eye className="h-4 w-4" /> Preview</Link>
+                      <button onClick={() => setIsEditing((current) => !current)} className={secondaryButton}>{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}{isEditing ? "Cancel" : "Edit"}</button>
+                      <button onClick={() => togglePublish(active)} className={secondaryButton}><Radio className="h-4 w-4" />{active.status === "published" ? "Unpublish" : "Publish"}</button>
+                      <button onClick={async () => { await cloneForm.mutateAsync({ id: active.id }); await listMine.refetch(); }} className={secondaryButton}><Copy className="h-4 w-4" /> Clone</button>
+                      <button onClick={() => removeActiveForm(active)} className={`${buttonBase} border border-red-200 bg-white text-red-700 dark:border-red-300/25 dark:bg-red-300/10 dark:text-red-100`}><Trash2 className="h-4 w-4" /> Delete</button>
+                      <Link href={`/forms/${active.slug}?preview=1`} className={`${buttonBase} bg-[#171813] text-white dark:bg-white dark:text-[#171813]`}><Eye className="h-4 w-4" /> Preview</Link>
                     </div>
                   </div>
                   {isEditing ? (
-                    <div className="mt-5 border-t border-black/10 pt-5">
+                    <div className="mt-5 border-t border-black/10 pt-5 dark:border-white/10">
                       <div className="grid gap-3 md:grid-cols-2">
                         <label className="block">
                           <span className="text-sm font-medium">Form title</span>
-                          <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} className="mt-2 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm" />
+                          <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} className={`${inputClass} mt-2 w-full px-3 py-2 text-sm`} />
                         </label>
                         <label className="block">
                           <span className="text-sm font-medium">Visibility</span>
-                          <select value={editVisibility} onChange={(event) => setEditVisibility(event.target.value as "public" | "unlisted")} className="mt-2 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm">
+                          <select value={editVisibility} onChange={(event) => setEditVisibility(event.target.value as "public" | "unlisted")} className={`${inputClass} mt-2 w-full px-3 py-2 text-sm`}>
                             <option value="public">Public</option>
                             <option value="unlisted">Unlisted</option>
                           </select>
                         </label>
                         <label className="block md:col-span-2">
                           <span className="text-sm font-medium">Description</span>
-                          <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} className="mt-2 min-h-20 w-full rounded-md border border-black/15 bg-white px-3 py-2 text-sm" />
+                          <textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} className={`${inputClass} mt-2 min-h-20 w-full px-3 py-2 text-sm`} />
                         </label>
                       </div>
                       <div className="mt-4 flex items-center justify-between">
                         <p className="text-sm font-medium">Fields</p>
-                        <button onClick={addEditField} className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2 py-1 text-xs"><Plus className="h-3 w-3" /> Add field</button>
+                        <button onClick={addEditField} className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2 py-1 text-xs dark:border-white/10 dark:bg-white/[0.08]"><Plus className="h-3 w-3" /> Add field</button>
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         {editFields.map((field, index) => (
-                          <div key={`${field.id}-${index}`} className="rounded-md border border-black/10 bg-white p-3">
-                            <input value={field.label} onChange={(event) => updateEditField(index, { label: event.target.value })} className="w-full rounded-md border border-black/10 px-2 py-2 text-sm" />
+                          <div key={`${field.id}-${index}`} className={`${softPanelClass} p-3`}>
+                            <input value={field.label} onChange={(event) => updateEditField(index, { label: event.target.value })} className={`${smallInputClass} w-full px-2 py-2 text-sm`} />
                             <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-2">
-                              <select value={field.type} onChange={(event) => updateEditField(index, patchForFieldType(event.target.value as FieldType, field.options))} className="rounded-md border border-black/10 px-2 py-2 text-sm">
+                              <select value={field.type} onChange={(event) => updateEditField(index, patchForFieldType(event.target.value as FieldType, field.options))} className={`${smallInputClass} px-2 py-2 text-sm`}>
                                 {fieldTypes.map((type) => <option key={type} value={type}>{type.replace("_", " ")}</option>)}
                               </select>
                               <label className="flex items-center gap-1 text-xs"><input checked={field.required} onChange={(event) => updateEditField(index, { required: event.target.checked })} type="checkbox" /> Req</label>
-                              <button onClick={() => setEditFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 p-2"><Trash2 className="h-3 w-3" /></button>
+                              <button onClick={() => setEditFields((fields) => fields.filter((_, currentIndex) => currentIndex !== index))} className="rounded-md border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-white/[0.08]"><Trash2 className="h-3 w-3" /></button>
                             </div>
                             {["single_select", "multi_select"].includes(field.type) ? (
                               <OptionsEditor options={field.options} onChange={(options) => updateEditField(index, { options })} />
@@ -437,8 +444,8 @@ export default function DashboardPage() {
                         ))}
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <button onClick={() => saveActiveForm(active)} disabled={updateForm.isPending || editFields.length === 0} className="inline-flex items-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white disabled:opacity-50"><Save className="h-4 w-4" /> {updateForm.isPending ? "Saving..." : "Save changes"}</button>
-                        <button onClick={() => setIsEditing(false)} className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm"><X className="h-4 w-4" /> Cancel</button>
+                        <button onClick={() => saveActiveForm(active)} disabled={updateForm.isPending || editFields.length === 0} className="inline-flex items-center gap-2 rounded-md bg-[#171813] px-3 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-[#171813]"><Save className="h-4 w-4" /> {updateForm.isPending ? "Saving..." : "Save changes"}</button>
+                        <button onClick={() => setIsEditing(false)} className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-white/[0.08]"><X className="h-4 w-4" /> Cancel</button>
                       </div>
                     </div>
                   ) : null}
@@ -449,10 +456,10 @@ export default function DashboardPage() {
                     <Metric label="Fields" value={active.fields.length} icon={<FilePlus2 className="h-4 w-4" />} />
                   </div>
                   {analytics && "responseTrend" in analytics ? (
-                    <div className="mt-5 rounded-md border border-black/10 bg-[#fbfcf8] p-4">
+                    <div className={`${softPanelClass} mt-5 p-4`}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium">7-day response trend</p>
-                        <span className="text-xs text-black/45">Last updated live</span>
+                        <span className="text-xs text-black/45 dark:text-white/45">Last updated live</span>
                       </div>
                       <div className="mt-4 flex h-28 items-end gap-2">
                         {analytics.responseTrend.map((day) => {
@@ -462,7 +469,7 @@ export default function DashboardPage() {
                               <div className="flex h-20 w-full items-end">
                                 <span className="w-full rounded-t-sm bg-[#0f766e] shadow-sm" style={{ height: `${Math.max(8, (day.responses / max) * 80)}px` }} />
                               </div>
-                              <span className="text-[10px] text-black/45">{day.date.slice(5)}</span>
+                              <span className="text-[10px] text-black/45 dark:text-white/45">{day.date.slice(5)}</span>
                             </div>
                           );
                         })}
@@ -472,55 +479,55 @@ export default function DashboardPage() {
                 </section>
 
                 <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-                  <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm">
+                  <div className={`${cardClass} p-5`}>
                     <div className="flex items-center justify-between">
                       <h2 className="flex items-center gap-2 font-semibold"><BarChart3 className="h-4 w-4" /> Response management</h2>
-                      <a download={`${active.slug}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Download className="h-4 w-4" /> CSV</a>
+                      <a download={`${active.slug}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`} className={secondaryButton}><Download className="h-4 w-4" /> CSV</a>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <input value={responseQuery} onChange={(event) => { setResponsePage(1); setResponseQuery(event.target.value); }} className="min-w-56 rounded-md border border-black/15 px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10" placeholder="Filter by respondent email" />
-                      <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50">{responsesQuery.data?.total ?? responses.length} total</span>
+                      <input value={responseQuery} onChange={(event) => { setResponsePage(1); setResponseQuery(event.target.value); }} className={`${inputClass} min-w-56 px-3 py-2 text-sm`} placeholder="Filter by respondent email" />
+                      <span className="rounded-full bg-[#f4f6f1] px-2 py-1 text-xs text-black/50 dark:bg-white/[0.08] dark:text-white/55">{responsesQuery.data?.total ?? responses.length} total</span>
                     </div>
                     <div className="mt-4 overflow-x-auto">
                       <table className="w-full min-w-[620px] text-left text-sm">
-                        <thead className="border-b border-black/10 text-xs uppercase tracking-wide text-black/45"><tr><th className="py-2">Submitted</th>{active.fields.slice(0, 3).map((field) => <th key={field.id} className="py-2">{field.label}</th>)}</tr></thead>
+                        <thead className="border-b border-black/10 text-xs uppercase tracking-wide text-black/45 dark:border-white/10 dark:text-white/45"><tr><th className="py-2">Submitted</th>{active.fields.slice(0, 3).map((field) => <th key={field.id} className="py-2">{field.label}</th>)}</tr></thead>
                         <tbody>
                           {responses.map((response) => (
-                            <tr key={response.id} className="border-b border-black/5 transition hover:bg-[#fbfcf8]"><td className="py-3 text-black/55">{new Date(response.submittedAt).toLocaleDateString()}</td>{active.fields.slice(0, 3).map((field) => <td key={field.id} className="py-3">{String(response.values[field.id] ?? "")}</td>)}</tr>
+                            <tr key={response.id} className="border-b border-black/5 transition hover:bg-[#fbfcf8] dark:border-white/5 dark:hover:bg-white/[0.05]"><td className="py-3 text-black/55 dark:text-white/55">{new Date(response.submittedAt).toLocaleDateString()}</td>{active.fields.slice(0, 3).map((field) => <td key={field.id} className="py-3">{String(response.values[field.id] ?? "")}</td>)}</tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                     <div className="mt-4 flex items-center justify-between text-sm">
-                      <button disabled={responsePage <= 1} onClick={() => setResponsePage((page) => Math.max(1, page - 1))} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40">Previous</button>
-                      <span className="text-black/55">Page {responsesQuery.data?.page ?? responsePage} of {responsesQuery.data?.pageCount ?? 1}</span>
-                      <button disabled={responsePage >= (responsesQuery.data?.pageCount ?? 1)} onClick={() => setResponsePage((page) => page + 1)} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40">Next</button>
+                      <button disabled={responsePage <= 1} onClick={() => setResponsePage((page) => Math.max(1, page - 1))} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/[0.12]">Previous</button>
+                      <span className="text-black/55 dark:text-white/55">Page {responsesQuery.data?.page ?? responsePage} of {responsesQuery.data?.pageCount ?? 1}</span>
+                      <button disabled={responsePage >= (responsesQuery.data?.pageCount ?? 1)} onClick={() => setResponsePage((page) => page + 1)} className="rounded-md border border-black/10 bg-white px-3 py-2 transition hover:bg-[#f4f6f1] disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/[0.12]">Next</button>
                     </div>
                   </div>
-                  <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm xl:sticky xl:top-5 xl:self-start">
+                  <div className={`${cardClass} p-5 xl:sticky xl:top-5 xl:self-start`}>
                     <div className="flex items-center justify-between">
                       <h2 className="font-semibold">Share</h2>
                       <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-700">QR ready</span>
                     </div>
-                    <p className="mt-3 break-all rounded-md bg-[#f4f6f1] p-3 text-sm leading-5">{formUrl}</p>
-                    <div className="mt-4 flex aspect-square items-center justify-center rounded-md border border-black/10 bg-[#fbfcf8] p-7">
-                      {qrDataUrl ? <img src={qrDataUrl} alt={`QR code for ${active.title}`} className="h-full w-full object-contain" /> : <span className="text-sm text-black/50">Generating QR...</span>}
+                    <p className="mt-3 break-all rounded-md bg-[#f4f6f1] p-3 text-sm leading-5 dark:bg-white/[0.06]">{formUrl}</p>
+                    <div className="mt-4 flex aspect-square items-center justify-center rounded-md border border-black/10 bg-[#fbfcf8] p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                      {qrDataUrl ? <img src={qrDataUrl} alt={`QR code for ${active.title}`} className="h-full w-full object-contain" /> : <span className="text-sm text-black/50 dark:text-white/50">Generating QR...</span>}
                     </div>
-                    <p className="mt-3 text-sm text-black/60">A fresh QR code is generated from this form link whenever the selected form changes.</p>
+                    <p className="mt-3 text-sm text-black/60 dark:text-white/60">A fresh QR code is generated from this form link whenever the selected form changes.</p>
                     <div className="mt-4 grid gap-2">
-                      <button onClick={shareQr} className={`${buttonBase} bg-[#171813] text-white`}><Share2 className="h-4 w-4" /> Share QR</button>
-                      <button onClick={shareQrViaMail} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Mail className="h-4 w-4" /> Share QR via Mail</button>
-                      <button onClick={shareQrOnWhatsapp} className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><MessageCircle className="h-4 w-4" /> Whatsapp QR</button>
-                      <button className={`${buttonBase} border border-black/10 bg-white text-[#171813]`}><Send className="h-4 w-4" /> Test email flow</button>
+                      <button onClick={shareQr} className={`${buttonBase} bg-[#171813] text-white dark:bg-white dark:text-[#171813]`}><Share2 className="h-4 w-4" /> Share QR</button>
+                      <button onClick={shareQrViaMail} className={secondaryButton}><Mail className="h-4 w-4" /> Share QR via Mail</button>
+                      <button onClick={shareQrOnWhatsapp} className={secondaryButton}><MessageCircle className="h-4 w-4" /> Whatsapp QR</button>
+                      <button className={secondaryButton}><Send className="h-4 w-4" /> Test email flow</button>
                     </div>
-                    {shareStatus ? <p className="mt-3 rounded-md bg-[#f7f8f3] px-3 py-2 text-sm text-black/60">{shareStatus}</p> : null}
+                    {shareStatus ? <p className="mt-3 rounded-md bg-[#f7f8f3] px-3 py-2 text-sm text-black/60 dark:bg-white/[0.06] dark:text-white/60">{shareStatus}</p> : null}
                   </div>
                 </section>
               </div>
             ) : (
-              <div className="rounded-lg border border-black/10 bg-white p-6 shadow-sm">
+              <div className={`${cardClass} p-6`}>
                 <h1 className="text-2xl font-semibold">Your workspace is ready.</h1>
-                <p className="mt-2 text-black/60">Create your first form from the sidebar, then publish it to get a shareable link.</p>
+                <p className="mt-2 text-black/60 dark:text-white/60">Create your first form from the sidebar, then publish it to get a shareable link.</p>
               </div>
             )}
           </section>
@@ -532,19 +539,19 @@ export default function DashboardPage() {
 
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="min-w-24 rounded-md bg-[#f4f6f1] px-3 py-2 text-center">
+    <div className="min-w-24 rounded-md bg-[#f4f6f1] px-3 py-2 text-center dark:bg-white/[0.06]">
       <p className="text-lg font-semibold">{value}</p>
-      <p className="text-[11px] uppercase tracking-wide text-black/45">{label}</p>
+      <p className="text-[11px] uppercase tracking-wide text-black/45 dark:text-white/45">{label}</p>
     </div>
   );
 }
 
 function Metric({ label, value, icon }: { label: string; value: string | number; icon?: ReactNode }) {
   return (
-    <div className="rounded-md border border-black/10 bg-[#fbfcf8] p-4">
+    <div className={`${softPanelClass} p-4`}>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-black/50">{label}</p>
-        {icon ? <span className="grid h-8 w-8 place-items-center rounded-md bg-white text-[#0f766e] shadow-sm">{icon}</span> : null}
+        <p className="text-sm text-black/50 dark:text-white/50">{label}</p>
+        {icon ? <span className="grid h-8 w-8 place-items-center rounded-md bg-white text-[#0f766e] shadow-sm dark:bg-white/[0.08] dark:text-emerald-200">{icon}</span> : null}
       </div>
       <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
@@ -577,24 +584,24 @@ function OptionsEditor({ options, onChange, compact = false }: { options: string
               addOption();
             }
           }}
-          className={`min-w-0 flex-1 rounded-md border border-black/10 px-2 ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}
+          className={`${smallInputClass} min-w-0 flex-1 px-2 ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}
           placeholder="Add option"
         />
-        <button type="button" onClick={addOption} className={`shrink-0 rounded-md border border-black/10 px-2 ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}>
+        <button type="button" onClick={addOption} className={`shrink-0 rounded-md border border-black/10 px-2 transition hover:bg-[#f4f6f1] dark:border-white/10 dark:hover:bg-white/[0.08] ${compact ? "py-1 text-xs" : "py-2 text-sm"}`}>
           Add
         </button>
       </div>
       {options.length ? (
         <div className="flex flex-wrap gap-2">
           {options.map((option) => (
-            <span key={option} className={`inline-flex items-center gap-1 rounded-full bg-[#f7f8f3] px-2 py-1 ${compact ? "text-[11px]" : "text-xs"}`}>
+            <span key={option} className={`inline-flex items-center gap-1 rounded-full bg-[#f7f8f3] px-2 py-1 dark:bg-white/[0.08] ${compact ? "text-[11px]" : "text-xs"}`}>
               {option}
-              <button type="button" onClick={() => onChange(options.filter((current) => current !== option))} className="text-black/45 hover:text-red-700">x</button>
+              <button type="button" onClick={() => onChange(options.filter((current) => current !== option))} className="text-black/45 hover:text-red-700 dark:text-white/45 dark:hover:text-red-200">x</button>
             </span>
           ))}
         </div>
       ) : (
-        <p className={`${compact ? "text-[11px]" : "text-xs"} text-black/45`}>Add at least one option.</p>
+        <p className={`${compact ? "text-[11px]" : "text-xs"} text-black/45 dark:text-white/45`}>Add at least one option.</p>
       )}
     </div>
   );
